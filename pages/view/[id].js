@@ -1,41 +1,19 @@
-import { useRouter } from 'next/router';
 import axios from 'axios';
-import { useEffect, useState, useCallback } from 'react';
 import Item from '../../src/component/Item';
-import { Loader } from 'semantic-ui-react';
+import Head from 'next/head';
 
-const Post = () => {
-  const router = useRouter();
-  const { id } = router.query;
-
-  const [item, setItem] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
-
-  const API_URL = `http://makeup-api.herokuapp.com/api/v1/products/${id}.json`;
-
-  const getData = useCallback(() => {
-    axios.get(API_URL).then((res) => {
-      setItem(res.data);
-      setIsLoading(false);
-    });
-  }, [API_URL]);
-
-  useEffect(() => {
-    if (id && id > 0) {
-      getData();
-    }
-  }, [getData, id]);
-
+const Post = ({ item, name }) => {
   return (
     <>
-      {isLoading ? (
-        <div style={{ padding: '300px 0' }}>
-          <Loader inline="centered" active>
-            Loading
-          </Loader>
-        </div>
-      ) : (
-        <Item item={item} />
+      {item && (
+        <>
+          <Head>
+            <title>{item.name}</title>
+            <meta name="description" content={item.description}></meta>
+          </Head>
+          {name} 환경입니다.
+          <Item item={item} />
+        </>
       )}
     </>
   );
@@ -43,19 +21,20 @@ const Post = () => {
 
 export default Post;
 
-// export async function getServerSideProps(context) {
-//   const id = context.params.id;
-//   const apiUrl = `http://makeup-api.herokuapp.com/api/v1/products/${id}.json`;
-//   const res = await Axios.get(apiUrl);
-//   const data = res.data;
+// node환경
+export async function getServerSideProps(context) {
+  const id = context.params.id;
+  const apiUrl = `http://makeup-api.herokuapp.com/api/v1/products/${id}.json`;
+  const res = await axios.get(apiUrl);
+  const data = res.data;
 
-//   return {
-//     props: {
-//       item: data,
-//       name: process.env.name,
-//     },
-//   };
-// }
+  return {
+    props: {
+      item: data,
+      name: process.env.name,
+    },
+  };
+}
 
 /* Next js 모든 페이지 사전 렌더링 (Pre-rendering)
 더 좋은 퍼포먼스
@@ -71,5 +50,4 @@ export default Post;
 - getStaticProps / getStaticPaths
 [서버사이드 렌더링]은 매 요청마다 html 을 생성
 - 항상 최신 상태 유지
-- getServerSideProps
-*/
+- getServerSideProps */
